@@ -1,0 +1,238 @@
+// Declare constant :
+#define DO 262
+#define RE 294
+#define MI 330
+#define FA 349
+
+// Declare & initalize variables, arrays :
+int level = 4 ;
+int score = 0 ;
+int pinSong = 8 ;
+int redPin = 2 ;
+int greenPin = 3 ;
+int bluePin = 4 ;
+int yellowPin = 5 ;
+String Colors[4] = {"r","g","b","y"} ;
+boolean CheckSeq = true ;
+
+void setup() {
+  // put your setup code here, to run once:
+  //Serial.begin(9600) ; // Configure terminal for debugging
+  randomSeed(analogRead(A0)) ;
+  pinMode(pinSong,OUTPUT) ; // Dedicated pin for music  
+}
+
+void switchOff() {
+  // Switch off all led :
+  digitalWrite(redPin,HIGH) ;  
+  digitalWrite(greenPin,HIGH) ;  
+  digitalWrite(bluePin,HIGH) ;  
+  digitalWrite(yellowPin,HIGH) ;  
+}
+
+void switchOn() {
+  // Switch off all led :
+  digitalWrite(redPin,LOW) ;  
+  digitalWrite(greenPin,LOW) ;  
+  digitalWrite(bluePin,LOW) ;  
+  digitalWrite(yellowPin,LOW) ;  
+}
+
+void blinkAll(int nbTime) {
+  // Blink all leds :
+  pinOUT() ;
+  for (int i=0; i<nbTime; i++) {
+    switchOff() ;
+    playTone(MI) ;
+    delay(500) ;
+    switchOn() ;
+    playTone(FA) ;
+    delay(500) ;
+  }
+  switchOff() ;  
+}
+
+void blinkLed(int pin ,int nbTime) {
+  // Blink selected led :
+  pinOUT() ;
+  switchOff() ;
+  for (int i=0; i<nbTime; i++) {
+    digitalWrite(pin,LOW) ;
+    playTone(62) ;
+    delay(500) ;
+    digitalWrite(pin, HIGH) ;
+    delay(500) ;
+  }
+  digitalWrite(pin, HIGH) ;  
+}
+
+void winSeq() {     
+  // Winning sequence :   
+  pinOUT() ;
+  switchOff() ;
+  for(int i=2; i<6; i++){
+    digitalWrite(i,LOW);
+    playTone(DO) ; 
+    delay(500) ;
+    digitalWrite(i,HIGH) ;    
+  }  
+  for(int i=5; i>1; i--){
+    digitalWrite(i,LOW); 
+    playTone(MI) ;
+    delay(500) ;
+    digitalWrite(i,HIGH) ;
+  }  
+}
+
+void pinOUT() {
+  // Set pin in OUTPUT mode :
+  pinMode(redPin,OUTPUT) ;
+  pinMode(greenPin,OUTPUT) ;
+  pinMode(bluePin,OUTPUT) ;
+  pinMode(yellowPin,OUTPUT) ;
+}
+
+void pinIN() {
+  // Set pin in INPUT mode :
+  pinMode(redPin,INPUT) ;
+  pinMode(greenPin,INPUT) ;
+  pinMode(bluePin,INPUT) ;
+  pinMode(yellowPin,INPUT) ;
+}
+
+void check_Brelease(int pin) {
+  // Check if button is again pressed :
+  int valPin =0 ;
+  do{
+    valPin=digitalRead(pin) ;
+  }while(valPin==0) ;  
+}
+
+void playTone(int note) {
+  // Play tone linked to color :
+  tone(pinSong,note,300) ;
+}
+
+void playColor(String color) {
+  if (color == "r") {
+    digitalWrite(redPin,LOW) ;
+    playTone(DO) ;
+    delay(700) ;
+    digitalWrite(redPin,HIGH) ;
+    delay(300) ;
+  }
+  else if (color == "g") {
+    digitalWrite(greenPin,LOW) ;
+    playTone(RE) ;
+    delay(700) ;
+    digitalWrite(greenPin,HIGH) ;
+    delay(300) ;
+  }
+  else if (color == "b") {
+    digitalWrite(bluePin,LOW) ;
+    playTone(MI) ;
+    delay(700) ;
+    digitalWrite(bluePin,HIGH) ;
+    delay(300) ;
+  }
+  else {
+    digitalWrite(yellowPin,LOW) ;
+    playTone(FA) ;
+    delay(700) ;
+    digitalWrite(yellowPin,HIGH) ;
+    delay(300) ;
+  }
+  
+}
+void loop() {
+  // put your main code here, to run repeatedly:
+ 
+ // Init some stuffs :
+ pinOUT() ;
+ switchOff() ;
+ CheckSeq = true ;
+ String Sequence[level] ;
+ String PlayerSeq[level] ;    
+ 
+ // Fill array of sequence :
+ for (int i=0; i<level; i++){
+  Sequence[i] = Colors[random(0,4)] ;
+  //Serial.println(Sequence[i]) ;  
+ }
+  //Serial.println("") ;
+ // Play sequence :
+ pinOUT() ; 
+ for (int i=0; i<level; i++){
+   //Serial.println(Sequence[i]) ;
+   playColor(Sequence[i]) ;   
+ }
+
+ // Player sequence
+ pinIN() ; 
+ //Serial.println("") ;
+ //Serial.println("Enter your sequence:") ;
+ for (int s=0; s<level; s++){
+  do{
+    if (digitalRead(redPin)==0){
+      PlayerSeq[s] = "r" ;
+      playTone(DO) ;
+      //Serial.print(PlayerSeq[s]) ;
+      check_Brelease(redPin) ;
+      break ;  
+    }
+    if (digitalRead(greenPin)==0){
+      PlayerSeq[s] = "g" ;
+      playTone(RE) ;
+      //Serial.print(PlayerSeq[s]) ;
+      check_Brelease(greenPin) ;
+      break ;  
+    }
+    if (digitalRead(bluePin)==0){
+      PlayerSeq[s] = "b" ;
+      playTone(MI) ;
+      //Serial.print(PlayerSeq[s]) ;
+      check_Brelease(bluePin) ;
+      break ;  
+    }
+    if (digitalRead(yellowPin)==0){
+      PlayerSeq[s] = "y" ;
+      playTone(FA) ;
+      //Serial.print(PlayerSeq[s]) ;
+      check_Brelease(yellowPin) ;
+      break ;  
+    }
+  }while(true) ;      
+  delay(200) ;  
+ }
+ //Serial.println("") ;
+
+  // Check playersequence :
+  delay(300) ;
+  for (int i=0;i<level;i++){
+    if (PlayerSeq[i] != Sequence[i]){
+      CheckSeq = false ;
+      break;
+    }      
+  }
+  if (CheckSeq == true){
+    blinkAll(4) ;
+    score ++ ;     
+    }  
+  else {blinkLed(redPin,3) ;}    
+  
+  //Serial.print("score:") ;   
+  //Serial.println(score) ;
+  delay(3000) ;  
+  
+  // Manage level
+  if ((score!=0) && (score % 5)==0 && (CheckSeq==true)) {
+      level++ ;      
+      //Serial.print("level:") ;
+      //Serial.println(level) ;      
+      winSeq() ;
+      switchOff() ;
+      delay(3000) ;
+      }   
+}
+
+
